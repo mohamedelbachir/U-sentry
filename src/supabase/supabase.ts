@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin: {
+        Row: {
+          fonction: number
+          id: number
+          uuid: string
+        }
+        Insert: {
+          fonction: number
+          id?: number
+          uuid: string
+        }
+        Update: {
+          fonction?: number
+          id?: number
+          uuid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_admin_fonction_fkey"
+            columns: ["fonction"]
+            isOneToOne: false
+            referencedRelation: "facultes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_admin_uuid_fkey"
+            columns: ["uuid"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       alertes: {
         Row: {
           create_at: string | null
@@ -246,23 +279,29 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          email: string | null
           full_name: string | null
           id: string
           role: string
+          user_metadata: Json | null
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           role?: string
+          user_metadata?: Json | null
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           role?: string
+          user_metadata?: Json | null
           username?: string | null
         }
         Relationships: [

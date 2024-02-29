@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "react-query";
-import { supabase } from "../supabase/supabaseClient";
+import { supabase, adminAuthClient } from "../supabase/supabaseClient";
+import { useEffect, useState } from "react";
 export type alertType = {
   id: number;
   title: string;
@@ -18,6 +19,13 @@ type filiereType = departementType & {
 type niveauxType = {
   nom: string;
   filiereId: number;
+};
+
+type adminProps = {
+  email: string;
+  mdp: string;
+  role: number;
+  name: string;
 };
 export const useFacultyList = () => {
   return useQuery({
@@ -91,9 +99,113 @@ export const useNiveauList = () => {
   });
 };
 
+export const useAdminList = () => {
+  return useQuery({
+    queryKey: ["admin-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("admin").select("*");
+      if (error) {
+        //console.log(error);
+        throw new Error(error.message);
+      }
+      return data;
+    },
+  });
+};
+
+export const useProfileList = () => {
+  return useQuery({
+    queryKey: ["profile-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) {
+        //console.log(error);
+        throw new Error(error.message);
+      }
+      return data;
+    },
+  });
+};
+
+export function useMutationCreateAdmin({ name, email, mdp, role }: adminProps) {
+  const [id, setId] = useState<string | undefined>(undefined);
+  const updateAdminProfile = useMutationCreateAdminProfile({
+    id: id!,
+    role: role,
+  });
+  const updateProfile = useMutationUpdateProile({
+    id: id!,
+    name: name,
+    email: email,
+  });
+  useEffect(() => {
+    if (id) {
+      updateAdminProfile.mutate();
+      updateProfile.mutate();
+    }
+  }, [id]);
+
+  return useMutation(
+    async () =>
+      await adminAuthClient
+        .createUser({
+          email: email,
+          password: mdp,
+          email_confirm: true,
+        })
+        .then((r) => {
+          setId(r.data.user?.id);
+        })
+  );
+}
+
 export const useMutationDeleteFaculty = (id: number) => {
   return useMutation(
     async () => await supabase.from("facultes").delete().eq("id", id)
+  );
+};
+
+export const useMutationDeleteAdmin = ({
+  auth,
+  id,
+}: {
+  auth: string;
+  id: number;
+}) => {
+  adminAuthClient.deleteUser(auth);
+  return useMutation(
+    async () => await supabase.from("admin").delete().eq("id", id)
+  );
+};
+
+export const useMutationUpdateProile = ({
+  id,
+  name,
+  email,
+}: {
+  id: string;
+  name: string;
+  email: string;
+}) => {
+  return useMutation(
+    async () =>
+      await supabase
+        .from("profiles")
+        .update({ username: name, email: email })
+        .eq("id", id)
+  );
+};
+
+export const useMutationCreateAdminProfile = ({
+  id,
+  role,
+}: {
+  id: string;
+  role: number;
+}) => {
+  return useMutation(
+    async () =>
+      await supabase.from("admin").insert({ uuid: id, fonction: role })
   );
 };
 

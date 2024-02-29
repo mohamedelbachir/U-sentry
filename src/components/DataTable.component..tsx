@@ -54,8 +54,6 @@ function DataTable({
     isLoading: fetchFiliereList,
     isError: failLoadingFiliere,
   } = useFiliereList();
-  console.log(filiereList, data);
-
   const rows = data.map((d, i) => (
     <Table.Tr key={d.id}>
       <Table.Td>{i}</Table.Td>
