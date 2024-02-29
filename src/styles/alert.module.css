@@ -1,0 +1,47 @@
+.file-import {
+  position: relative;
+  border: 1px solid var(--primary-color);
+  overflow: hidden;
+  padding: 10%;
+  height: 250px;
+  width: 100%;
+  border-radius: 5px;
+  border-style: dashed;
+  .images {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 3;
+    transform: translateY(-50%);
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .img_ajout {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    transition: 1s;
+    transform: translate(-50%, -50%);
+  }
+  .target_import {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    opacity: 0.8;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  &:hover {
+    filter: grayscale(20);
+  }
+}
