@@ -49,6 +49,8 @@ export interface ContextState {
   doSignOut?: () => Promise<{ error: AuthError | null }>;
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
+  isLoading?: boolean;
+  failUser?: boolean;
 }
 
 export const Context = createContext<ContextState>({
@@ -59,39 +61,63 @@ export const Context = createContext<ContextState>({
 });
 function AppContextProvider({ children }: props) {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<profile>("SUPER_ADMIN"); //test Case
+  const [profile, setProfile] = useState<profile>("ETUDIANT");
+  const [isLoading, setLoading] = useState(false);
+  const [failProfile, setfailProfile] = useState(false);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      setLoading(true);
       handleUserRole(data.session);
     });
     supabase.auth.onAuthStateChange((_event, session) => {
+      setLoading(true);
       handleUserRole(session);
     });
   }, []);
   async function handleUserRole(userSession: Session | null) {
     if (userSession === null) {
       setSession(null);
+      setLoading(false);
       return;
     }
-    const { data, error } = await supabase
+    const { data: adminData, error: fetchingError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userSession.user.id)
+      .eq("role", "SUPER_ADMIN")
       .single();
-    if (error) {
+    if (fetchingError) {
       setSession(null);
-      console.log(error.message);
+      setLoading(false);
       return;
     }
-    if (data) {
-      if (data.role === "ETUDIANT") {
+    if (adminData != null) {
+      setProfile("SUPER_ADMIN");
+      setLoading(false);
+    } else {
+      const { data, error } = await supabase
+        .from("admin")
+        .select("*")
+        .eq("uuid", userSession.user.id)
+        .single();
+      if (error) {
         setSession(null);
-        throw new Error("fail to connect");
+        console.log(error.message);
+        setLoading(false);
         return;
       }
-      setProfile(data.role as profile);
+      if (data === null) {
+        setSession(null);
+        setLoading(false);
+        setfailProfile(true);
+        throw new Error("fail to connect");
+        return;
+      } else {
+        setProfile("ADMIN");
+      }
     }
     setSession(userSession);
+    setLoading(false);
   }
   const contextValue: ContextState = {
     session,
@@ -101,6 +127,8 @@ function AppContextProvider({ children }: props) {
     setSession: setSession,
     isAdmin: profile === "ADMIN",
     isSuperAdmin: profile === "SUPER_ADMIN",
+    isLoading: isLoading,
+    failUser: failProfile,
   };
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }

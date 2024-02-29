@@ -102,6 +102,9 @@ function AdminListTable({ data, handleClick, index, isLoading }: TableProps) {
             <Table.Th>
               <Skeleton height={8} my={"sm"} width={"80%"} />
             </Table.Th>
+            <Table.Th>
+              <Skeleton height={8} my={"sm"} width={"80%"} />
+            </Table.Th>
           </Table.Tr>
         </Table.Tbody>
       )}

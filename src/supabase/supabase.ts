@@ -44,32 +44,35 @@ export type Database = {
       }
       alertes: {
         Row: {
+          content: string | null
           create_at: string | null
           description: string | null
           hash: string | null
           id: number
           imageURL: string | null
-          target_classes: number | null
+          target: Json | null
           title: string
           uuid: string
         }
         Insert: {
+          content?: string | null
           create_at?: string | null
           description?: string | null
           hash?: string | null
           id?: number
           imageURL?: string | null
-          target_classes?: number | null
+          target?: Json | null
           title?: string
           uuid: string
         }
         Update: {
+          content?: string | null
           create_at?: string | null
           description?: string | null
           hash?: string | null
           id?: number
           imageURL?: string | null
-          target_classes?: number | null
+          target?: Json | null
           title?: string
           uuid?: string
         }
@@ -79,13 +82,6 @@ export type Database = {
             columns: ["uuid"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_alertes_target_classes_fkey"
-            columns: ["target_classes"]
-            isOneToOne: false
-            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
           {

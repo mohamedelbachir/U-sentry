@@ -6,12 +6,10 @@ import { useAuth } from "../context/AppContext";
 //type Props = {};
 function Layout() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, isLoading: loadingProfile } = useAuth();
   const [isLoading, setLoading] = useState(true);
   useEffect(() => {
-    //fake session for test ONLY
-    setLoading(false);
-    /*if (!session) {
+    if (!session && !loadingProfile) {
       setTimeout(() => {
         setLoading(false);
         navigate("/", {
@@ -19,15 +17,18 @@ function Layout() {
         });
       }, 1000);
     } else {
-      setTimeout(() => {
-        setLoading(false);
-        if (!location.pathname.includes("admin")) {
-          navigate("/admin", {
-            replace: true,
-          });
-        }
-      }, 1000);
-    }*/
+      if (!loadingProfile && session) {
+        setTimeout(() => {
+          if (!location.pathname.includes("admin")) {
+            setLoading(false);
+            navigate("/admin", {
+              replace: true,
+            });
+          }
+        }, 1000);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, session]);
   if (isLoading) {
     return (

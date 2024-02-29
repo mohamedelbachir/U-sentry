@@ -209,6 +209,39 @@ export const useMutationCreateAdminProfile = ({
   );
 };
 
+export function useMutationCreateAlert({
+  uuid,
+  title,
+  description,
+  hash,
+  imageUrl,
+  target,
+}: {
+  uuid: string;
+  title: string;
+  description: string;
+  hash: string;
+  imageUrl: string;
+  target?: {
+    facId: number[];
+    depId: number[];
+    filiereId: number[];
+    niveauId: number[];
+  } | null;
+}) {
+  return useMutation(
+    async () =>
+      await supabase.from("alertes").insert({
+        uuid,
+        description,
+        title,
+        hash,
+        imageURL: imageUrl,
+        target_classes: target,
+      })
+  );
+}
+
 export function useMutationCreateFaculty(value: string) {
   return useMutation(
     async () => await supabase.from("facultes").insert({ nom: value })

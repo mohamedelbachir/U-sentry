@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -15,7 +15,7 @@ import { useAuth } from "../context/AppContext";
 import Logo from "./../assets/icons/logo.svg?react";
 function Login() {
   const [loading, setLoading] = useState(false);
-  const { logIn, isAdmin, isSuperAdmin } = useAuth();
+  const { logIn, failUser } = useAuth();
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: {
@@ -23,6 +23,13 @@ function Login() {
       password: (value) => (value.length < 1 ? "mot de passe vide !!" : null),
     },
   });
+  useEffect(() => {
+    if (failUser) {
+      form.setFieldError("email", "email incorret");
+      form.setFieldError("password", "mot de passe incorret");
+    }
+  }, [failUser]);
+
   return (
     <Container size={420} my={40}>
       <Stack gap={0}>
@@ -48,10 +55,6 @@ function Login() {
             logIn(d)
               .then((result) => {
                 if (!result) {
-                  form.setFieldError("email", "email incorret");
-                  form.setFieldError("password", "mot de passe incorret");
-                }
-                if (!isAdmin && !isSuperAdmin) {
                   form.setFieldError("email", "email incorret");
                   form.setFieldError("password", "mot de passe incorret");
                 }
