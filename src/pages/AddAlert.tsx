@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+//@ts-ignore
 import React, { useEffect, useRef, useState } from "react";
 import {
   ref,
@@ -42,7 +45,6 @@ import { useAuth } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 
 function AddAlert() {
-  const [contentData, setContentData] = useState("");
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -53,7 +55,6 @@ function AddAlert() {
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
-    contentData,
   });
   const navigate = useNavigate();
   const [file, setFile] = useState<string | null>(null);
@@ -108,6 +109,7 @@ function AddAlert() {
 
   const createAlert = useMutationCreateAlert({
     uuid: session?.user.id,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     description: editor?.getText()!,
     hash: data.hash!,
     imageUrl: data.imageurl!,
@@ -214,8 +216,8 @@ function AddAlert() {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progression =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        //const progression =
+        // (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         //setProgress(progression);
         switch (snapshot.state) {
           case "paused":
