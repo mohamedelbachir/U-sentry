@@ -91,9 +91,7 @@ function AddAlert() {
     }[]
   >([]);
 
-  const [progress, setProgress] = useState(0);
-  const [withError, setWithError] = useState(false);
-  const formRef = useRef<();
+  const formRef = useRef();
   const [data, setData] = useState<{
     description?: string;
     title?: string;
@@ -218,10 +216,10 @@ function AddAlert() {
       (snapshot) => {
         const progression =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setProgress(progression);
+        //setProgress(progression);
         switch (snapshot.state) {
           case "paused":
-            console.log("en cours ..."); 
+            console.log("en cours ...");
 
             break;
           case "running":
@@ -239,7 +237,7 @@ function AddAlert() {
           case "storage/unknown":
           default:
             console.log("erreur");
-            setWithError(true);
+            //setWithError(true);
             setTimeout(() => {
               resetParam();
             }, 3000);
