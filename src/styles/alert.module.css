@@ -5,12 +5,13 @@
 }
 .file-import {
   position: relative;
-  border: 1px solid var(--primary-color);
+  border: 1px solid black;
   overflow: hidden;
   padding: 10%;
   height: 250px;
   width: 100%;
   border-radius: 5px;
+  margin-top: 20px;
   border-style: dashed;
   .images {
     width: 100%;

@@ -16,8 +16,7 @@ type filiereType = departementType & {
   depId: number;
 };
 
-type niveauxType = {
-  nom: string;
+type niveauxType = filiereType & {
   filiereId: number;
 };
 
@@ -32,6 +31,22 @@ export const useFacultyList = () => {
     queryKey: ["faculty-list"],
     queryFn: async () => {
       const { data, error } = await supabase.from("facultes").select("*");
+      if (error) {
+        //console.log(error);
+        throw new Error(error.message);
+      }
+      return data;
+    },
+  });
+};
+export const useFacultyListById = (id: number) => {
+  return useQuery({
+    queryKey: ["faculty-list", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("facultes")
+        .select("*")
+        .eq("id", id);
       if (error) {
         //console.log(error);
         throw new Error(error.message);
@@ -113,6 +128,23 @@ export const useAdminList = () => {
   });
 };
 
+export const useAlertList = (id: string) => {
+  return useQuery({
+    queryKey: ["alert-list", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alertes")
+        .select("*")
+        .eq("uuid", id);
+      if (error) {
+        //console.log(error);
+        throw new Error(error.message);
+      }
+      return data;
+    },
+  });
+};
+
 export const useProfileList = () => {
   return useQuery({
     queryKey: ["profile-list"],
@@ -178,20 +210,28 @@ export const useMutationDeleteAdmin = ({
   );
 };
 
+export const useMutationDeleteAlert = (id: number) => {
+  return useMutation(
+    async () => await supabase.from("alertes").delete().eq("id", id)
+  );
+};
+
 export const useMutationUpdateProile = ({
   id,
   name,
   email,
+  role,
 }: {
   id: string;
   name: string;
   email: string;
+  role: string;
 }) => {
   return useMutation(
     async () =>
       await supabase
         .from("profiles")
-        .update({ username: name, email: email })
+        .update({ username: name, email, role })
         .eq("id", id)
   );
 };
@@ -216,17 +256,19 @@ export function useMutationCreateAlert({
   hash,
   imageUrl,
   target,
+  content,
 }: {
   uuid: string;
   title: string;
   description: string;
   hash: string;
   imageUrl: string;
+  content?: string;
   target?: {
-    facId: number[];
-    depId: number[];
-    filiereId: number[];
-    niveauId: number[];
+    facId?: number[];
+    depId?: number[];
+    filiereId?: number[];
+    niveauId?: number[];
   } | null;
 }) {
   return useMutation(
@@ -237,7 +279,8 @@ export function useMutationCreateAlert({
         title,
         hash,
         imageURL: imageUrl,
-        target_classes: target,
+        target: target,
+        content,
       })
   );
 }
@@ -263,12 +306,12 @@ export function useMutationDeleteDepartement(id: number) {
   );
 }
 
-export function useMutationCreateFiliere({ nom, depId }: filiereType) {
+export function useMutationCreateFiliere({ nom, depId, facId }: filiereType) {
   return useMutation(
     async () =>
       await supabase
         .from("filieres")
-        .insert({ nom: nom, departement_id: depId })
+        .insert({ nom: nom, departement_id: depId, faculte_id: facId })
   );
 }
 
@@ -284,10 +327,20 @@ export const useMutationDeleteNiveau = (id: number) => {
   );
 };
 
-export function useMutationCreateNiveau({ nom, filiereId }: niveauxType) {
+export function useMutationCreateNiveau({
+  nom,
+  filiereId,
+  depId,
+  facId,
+}: niveauxType) {
   return useMutation(
     async () =>
-      await supabase.from("niveaux").insert({ nom: nom, filiere_id: filiereId })
+      await supabase.from("niveaux").insert({
+        nom: nom,
+        filiere_id: filiereId,
+        departement_id: depId,
+        faculte_id: facId,
+      })
   );
 }
 /**

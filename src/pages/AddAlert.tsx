@@ -7,7 +7,6 @@ import {
 } from "firebase/storage";
 import classes from "./../styles/alert.module.css";
 import { IconImageInPicture } from "@tabler/icons-react";
-//import { supabase } from "../supabase/supabaseClient";
 import {
   TextInput,
   Button,
@@ -23,38 +22,121 @@ import Compressor from "compressorjs";
 import { encode } from "blurhash";
 import { app } from "../firebase/firebase";
 import Editor from "../components/Editor.component";
-import { useMutationCreateAlert } from "../hooks/api";
+import { useEditor } from "@tiptap/react";
+import Highlight from "@tiptap/extension-highlight";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Superscript from "@tiptap/extension-superscript";
+import SubScript from "@tiptap/extension-subscript";
+import { Link } from "@mantine/tiptap";
+import {
+  useFacultyList,
+  useFiliereList,
+  useMutationCreateAlert,
+  useNiveauList,
+  useDepartementList,
+  useFacultyListById,
+} from "../hooks/api";
 import { useAuth } from "../context/AppContext";
+import { Editor as EditorType } from "@tiptap/react";
+import { useNavigate } from "react-router-dom";
+
 function AddAlert() {
+  const [contentData, setContentData] = useState("");
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Link,
+      Superscript,
+      SubScript,
+      Highlight,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+    ],
+    contentData,
+  });
+  const navigate = useNavigate();
   const [file, setFile] = useState<string | null>(null);
   const [compressedFile, setCompressedFile] = useState<File | Blob>();
   const storage = getStorage(app);
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const imgRef = useRef(null);
+  const { isAdmin, getAdminFunctionId } = useAuth();
+  const fac = useFacultyList();
+  const facWithId = useFacultyListById(getAdminFunctionId!);
+  const { data: facList = [] } = isAdmin ? facWithId : fac;
+  const { data: depList = [] } = useDepartementList();
+  const { data: filiereList = [] } = useFiliereList();
+  const { data: niveauList = [] } = useNiveauList();
+
+  const [dep, setDep] = useState<
+    {
+      faculte_id: number;
+      id: number;
+      nom: string;
+    }[]
+  >([]);
+  const [filiere, setFiliere] = useState<
+    {
+      departement_id: number | null;
+      id: number;
+      nom: string;
+    }[]
+  >([]);
+  const [niveau, setNiveau] = useState<
+    {
+      id: number;
+      nom: string;
+    }[]
+  >([]);
+
   const [progress, setProgress] = useState(0);
   const [withError, setWithError] = useState(false);
+  const formRef = useRef();
   const [data, setData] = useState<{
     description?: string;
     title?: string;
     imageurl?: string;
     hash?: string;
+    content?: string;
     target?: {
-      facId: number[];
-      depId: number[];
-      filiereId: number[];
-      niveauId: number[];
+      facId?: number[];
+      depId?: number[];
+      filiereId?: number[];
+      niveauId?: number[];
     } | null;
-  }>({});
+  }>({ description: "", title: "", hash: "", imageurl: "" });
 
   const createAlert = useMutationCreateAlert({
     uuid: session?.user.id,
-    description: data.description!,
+    description: editor?.getText()!,
     hash: data.hash!,
     imageUrl: data.imageurl!,
     title: data.title!,
     target: data.target!,
+    content: editor?.getHTML(),
   });
+
+  useEffect(() => {
+    const l = depList.filter((d) => data.target?.facId?.includes(d.faculte_id));
+    setDep(l);
+  }, [data.target?.facId, depList]);
+
+  useEffect(() => {
+    const l = filiereList.filter((d) =>
+      data.target?.facId?.includes(d.faculte_id)
+    );
+    setFiliere(l);
+  }, [data.target?.facId, filiereList]);
+
+  useEffect(() => {
+    const l = niveauList.filter((d) =>
+      data.target?.facId?.includes(d.faculte_id)
+    );
+    setNiveau(l);
+  }, [data.target?.facId, niveauList]);
 
   //const context=useContext()
   const content = "";
@@ -94,7 +176,7 @@ function AddAlert() {
       img.src = URL.createObjectURL(image);
     });
   };
-  function preview(e: { target: { files: (Blob | File)[] } }) {
+  function preview(e) {
     const image = e.target.files[0];
     if (!image) {
       return;
@@ -106,9 +188,9 @@ function AddAlert() {
       },
     });
     getImageBlurhash(image, 32, 32).then((hash) => {
-      const result = data;
-      result.hash = hash;
-      setData(result);
+      setData((data) => {
+        return { ...data, hash };
+      });
       setFile(
         e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null
       );
@@ -122,6 +204,7 @@ function AddAlert() {
     if (!compressedFile) {
       return;
     }
+    console.log(data);
 
     setLoading(true);
 
@@ -168,21 +251,28 @@ function AddAlert() {
       () => {
         // Upload completed successfully, now we can get the download URL
         getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-          console.log("Sauvegarde du produit ..." + downloadURL.toString());
-          const l = data;
-          l.imageurl = downloadURL;
-          setData(l);
-          setLoading(false);
+          setData((data) => {
+            return { ...data, imageurl: downloadURL };
+          });
+          setTimeout(() => {
+            createAlert.mutate();
+          }, 1000);
         });
       }
     );
   }
   useEffect(() => {
-    console.log(data);
-  }, [data]);
-
+    if (createAlert.isSuccess) {
+      document.getElementById("formElement").reset();
+      setFile(null);
+      setLoading(false);
+      setTimeout(() => {
+        navigate("/admin");
+      }, 1000);
+    }
+  }, [createAlert.isSuccess]);
   return (
-    <form onSubmit={handleSubmit}>
+    <form id="formElement" onSubmit={handleSubmit} ref={formRef}>
       <Box pos={"sticky"} top={0} py={"md"} w={"100%"} className={classes.top}>
         <Group justify="space-between">
           <Title order={3}>Creer une alerte</Title>
@@ -205,6 +295,7 @@ function AddAlert() {
           className={classes.images}
           accept=".jpg,.png,.jpeg,.gif,.bmp,.svg,.ico"
           onChange={preview}
+          required
         />
         <img
           id="target_import"
@@ -218,29 +309,119 @@ function AddAlert() {
         />
       </div>
       <TextInput
-        label={<Text size="lg">Titre alerte</Text>}
+        label={
+          <Text size="lg" span>
+            Titre alerte
+          </Text>
+        }
         placeholder="titre alerte"
+        required
+        withAsterisk
+        mt={"xs"}
+        onChange={(e) =>
+          setData((data) => {
+            return { ...data, title: e.target.value };
+          })
+        }
       />
       <MultiSelect
-        label={<Text size="lg">Faculte de publication alerte</Text>}
+        mt={"xs"}
+        label={
+          <Text size="lg" span>
+            Faculte de publication alerte
+          </Text>
+        }
         placeholder="Choisir la faculte"
-        data={["Faculte de science", "Faculte de droit"]}
+        data={[
+          ...facList.map((item) => ({
+            label: item.nom,
+            value: `${item.id}`,
+          })),
+        ]}
+        onChange={(value) =>
+          setData((data) => {
+            return {
+              ...data,
+              target: { ...data.target, facId: value.map((v) => parseInt(v)) },
+            };
+          })
+        }
+        required
         searchable
       />
       <MultiSelect
+        mt={"xs"}
         label={<Text size="lg">Departement de publication alerte</Text>}
-        placeholder="Choisir la faculte"
-        data={["Departement Informatique", "Departement Mathematique"]}
+        placeholder="Choisir le departement"
+        data={[
+          ...dep.map((item) => ({
+            label: item.nom,
+            value: `${item.id}`,
+          })),
+        ]}
+        onChange={(value) =>
+          setData((data) => {
+            return {
+              ...data,
+              target: {
+                ...data.target,
+                depId: value.map((v) => parseInt(v)),
+              },
+            };
+          })
+        }
         searchable
       />
       <MultiSelect
-        label={<Text size="lg">Choix de niveau d'alerte</Text>}
-        placeholder="Choisir la faculte"
-        data={["L1", "L2"]}
+        mt={"xs"}
+        label={<Text size="lg">Choix de la filiere</Text>}
+        placeholder="Choisir de la filiere"
+        data={[
+          ...filiere.map((item) => ({
+            label: item.nom,
+            value: `${item.id}`,
+          })),
+        ]}
+        onChange={(value) =>
+          setData((data) => {
+            return {
+              ...data,
+              target: {
+                ...data.target,
+                filiereId: value.map((v) => parseInt(v)),
+              },
+            };
+          })
+        }
         searchable
       />
-      <Text size="lg">Contenu alerte</Text>
-      <Editor content={content} />
+      <MultiSelect
+        mt={"xs"}
+        label={<Text size="lg">Choix de niveau d'alerte</Text>}
+        placeholder="Choisir le niveau"
+        data={[
+          ...niveau.map((item) => ({
+            label: item.nom,
+            value: `${item.id}`,
+          })),
+        ]}
+        onChange={(value) =>
+          setData((data) => {
+            return {
+              ...data,
+              target: {
+                ...data.target,
+                niveauId: value.map((v) => parseInt(v)),
+              },
+            };
+          })
+        }
+        searchable
+      />
+      <Text size="lg" mt={"xs"}>
+        Contenu alerte
+      </Text>
+      <Editor content={content} editor={editor!} />
     </form>
   );
 }

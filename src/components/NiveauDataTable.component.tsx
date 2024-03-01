@@ -51,6 +51,8 @@ function NiveauDataTable() {
   const create = useMutationCreateNiveau({
     nom: name,
     filiereId: idFiliere!,
+    facId: idFac!,
+    depId: idDep!,
   });
   const deleteNiveau = useMutationDeleteNiveau(id!);
 

@@ -172,7 +172,7 @@ export type Database = {
           }
         ]
       }
-      etudiant: {
+      etudiants: {
         Row: {
           classe_id: number
           id: number
@@ -222,17 +222,20 @@ export type Database = {
       }
       filieres: {
         Row: {
-          departement_id: number | null
+          departement_id: number
+          faculte_id: number
           id: number
           nom: string
         }
         Insert: {
-          departement_id?: number | null
+          departement_id: number
+          faculte_id: number
           id?: number
           nom: string
         }
         Update: {
-          departement_id?: number | null
+          departement_id?: number
+          faculte_id?: number
           id?: number
           nom?: string
         }
@@ -243,26 +246,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departements"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_filieres_faculte_id_fkey"
+            columns: ["faculte_id"]
+            isOneToOne: false
+            referencedRelation: "facultes"
+            referencedColumns: ["id"]
           }
         ]
       }
       niveaux: {
         Row: {
-          filiere_id: number | null
+          departement_id: number
+          faculte_id: number
+          filiere_id: number
           id: number
           nom: string
         }
         Insert: {
-          filiere_id?: number | null
+          departement_id: number
+          faculte_id: number
+          filiere_id: number
           id?: number
           nom?: string
         }
         Update: {
-          filiere_id?: number | null
+          departement_id?: number
+          faculte_id?: number
+          filiere_id?: number
           id?: number
           nom?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "public_niveaux_departement_id_fkey"
+            columns: ["departement_id"]
+            isOneToOne: false
+            referencedRelation: "departements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_niveaux_faculte_id_fkey"
+            columns: ["faculte_id"]
+            isOneToOne: false
+            referencedRelation: "facultes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_niveaux_filiere_id_fkey"
             columns: ["filiere_id"]

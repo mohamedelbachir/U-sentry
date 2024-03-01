@@ -10,7 +10,7 @@ interface userAuthLoginType {
   email: string;
   password: string;
 }
-type profile = "ETUDIANT" | "ADMIN" | "SUPER_ADMIN";
+type profile = "USER" | "ADMIN" | "SUPER_ADMIN";
 
 interface userAuthSignUpType extends userAuthLoginType {}
 
@@ -51,6 +51,7 @@ export interface ContextState {
   isSuperAdmin?: boolean;
   isLoading?: boolean;
   failUser?: boolean;
+  getAdminFunctionId?: number;
 }
 
 export const Context = createContext<ContextState>({
@@ -61,9 +62,10 @@ export const Context = createContext<ContextState>({
 });
 function AppContextProvider({ children }: props) {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<profile>("ETUDIANT");
+  const [profile, setProfile] = useState<profile>("USER");
   const [isLoading, setLoading] = useState(false);
   const [failProfile, setfailProfile] = useState(false);
+  const [adminFunction, setAdminFunction] = useState<number | null>();
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setLoading(true);
@@ -75,49 +77,64 @@ function AppContextProvider({ children }: props) {
     });
   }, []);
   async function handleUserRole(userSession: Session | null) {
-    if (userSession === null) {
+    if (userSession == null) {
       setSession(null);
       setLoading(false);
       return;
-    }
-    const { data: adminData, error: fetchingError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userSession.user.id)
-      .eq("role", "SUPER_ADMIN")
-      .single();
-    if (fetchingError) {
-      setSession(null);
-      setLoading(false);
-      return;
-    }
-    if (adminData != null) {
-      setProfile("SUPER_ADMIN");
-      setLoading(false);
     } else {
-      const { data, error } = await supabase
-        .from("admin")
+      const { data, error: failFecthing } = await supabase
+        .from("profiles")
         .select("*")
-        .eq("uuid", userSession.user.id)
+        .eq("id", userSession.user.id)
+        .eq("role", "SUPER_ADMIN")
         .single();
-      if (error) {
-        setSession(null);
-        console.log(error.message);
+      if (data && failFecthing == null) {
         setLoading(false);
-        return;
-      }
-      if (data === null) {
-        setSession(null);
-        setLoading(false);
-        setfailProfile(true);
-        throw new Error("fail to connect");
-        return;
-      } else {
-        setProfile("ADMIN");
+        setSession(userSession);
+        setProfile("SUPER_ADMIN");
       }
     }
-    setSession(userSession);
-    setLoading(false);
+    await supabase
+      .from("admin")
+      .select("*")
+      .eq("uuid", userSession.user.id)
+      .single()
+      .then((v) => {
+        if (v.data) {
+          setLoading(false);
+          setSession(userSession);
+          setAdminFunction(v.data.fonction);
+          setProfile("ADMIN");
+        }
+      });
+    /*.then((v) => {
+        if (v.error) {
+          setSession(null);
+          setLoading(false);
+          return;
+        } else {
+          if (v.data && v.data.role === "SUPER_ADMIN") {
+            console.log("log as an admin");
+            setSession(userSession);
+            setProfile("SUPER_ADMIN");
+            console.log(session);
+          } else {
+            
+              .then((v) => {
+                if (v.data) {
+                  setSession(userSession);
+                  setProfile("ADMIN");
+                }
+                if (v.error) {
+                  setSession(null);
+                  console.log(v.error.message);
+                  setLoading(false);
+                  return;
+                }
+              });
+          }
+        }
+      });*/
   }
   const contextValue: ContextState = {
     session,
@@ -129,8 +146,23 @@ function AppContextProvider({ children }: props) {
     isSuperAdmin: profile === "SUPER_ADMIN",
     isLoading: isLoading,
     failUser: failProfile,
+    getAdminFunctionId: adminFunction!,
   };
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 export const useAuth = () => useContext(Context);
 export default AppContextProvider;
+
+/**
+
+    
+    
+      console.log(fetchList);
+  }
+    
+   
+    
+
+  }
+
+ */
