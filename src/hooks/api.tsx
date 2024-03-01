@@ -220,18 +220,16 @@ export const useMutationUpdateProile = ({
   id,
   name,
   email,
-  role,
 }: {
   id: string;
   name: string;
   email: string;
-  role: string;
 }) => {
   return useMutation(
     async () =>
       await supabase
         .from("profiles")
-        .update({ username: name, email, role })
+        .update({ username: name, email })
         .eq("id", id)
   );
 };

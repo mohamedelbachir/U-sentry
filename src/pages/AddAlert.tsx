@@ -39,7 +39,6 @@ import {
   useFacultyListById,
 } from "../hooks/api";
 import { useAuth } from "../context/AppContext";
-import { Editor as EditorType } from "@tiptap/react";
 import { useNavigate } from "react-router-dom";
 
 function AddAlert() {
@@ -94,7 +93,7 @@ function AddAlert() {
 
   const [progress, setProgress] = useState(0);
   const [withError, setWithError] = useState(false);
-  const formRef = useRef();
+  const formRef = useRef<();
   const [data, setData] = useState<{
     description?: string;
     title?: string;
@@ -222,7 +221,7 @@ function AddAlert() {
         setProgress(progression);
         switch (snapshot.state) {
           case "paused":
-            console.log("en cours ...");
+            console.log("en cours ..."); 
 
             break;
           case "running":
@@ -263,7 +262,6 @@ function AddAlert() {
   }
   useEffect(() => {
     if (createAlert.isSuccess) {
-      document.getElementById("formElement").reset();
       setFile(null);
       setLoading(false);
       setTimeout(() => {
