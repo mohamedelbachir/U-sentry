@@ -88,6 +88,9 @@ function AppContextProvider({ children }: props) {
         .eq("id", userSession.user.id)
         .eq("role", "SUPER_ADMIN")
         .single();
+      if (failFecthing) {
+        setfailProfile(true);
+      }
       if (data && failFecthing == null) {
         setLoading(false);
         setSession(userSession);
@@ -150,6 +153,7 @@ function AppContextProvider({ children }: props) {
   };
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(Context);
 export default AppContextProvider;
 

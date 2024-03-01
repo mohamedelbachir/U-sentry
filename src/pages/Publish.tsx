@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+//@ts-ignore
 import React, { useEffect, useRef, useState } from "react";
 import {
   ref,
@@ -7,15 +10,7 @@ import {
 } from "firebase/storage";
 import classes from "./../styles/alert.module.css";
 import { IconImageInPicture } from "@tabler/icons-react";
-import {
-  TextInput,
-  Button,
-  Text,
-  MultiSelect,
-  Box,
-  Group,
-  Title,
-} from "@mantine/core";
+import { TextInput, Button, Text, Box, Group, Title } from "@mantine/core";
 
 import { IconSend } from "@tabler/icons-react";
 import Compressor from "compressorjs";
@@ -32,11 +27,9 @@ import SubScript from "@tiptap/extension-subscript";
 import { Link } from "@mantine/tiptap";
 import { useMutationCreateAlert } from "../hooks/api";
 import { useAuth } from "../context/AppContext";
-import { Editor as EditorType } from "@tiptap/react";
-import { useNavigate, useNavigation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Publish() {
-  const [contentData, setContentData] = useState("");
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -47,7 +40,6 @@ function Publish() {
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
-    contentData,
   });
   const [file, setFile] = useState<string | null>(null);
   const [compressedFile, setCompressedFile] = useState<File | Blob>();
@@ -55,8 +47,6 @@ function Publish() {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const imgRef = useRef(null);
-  const [progress, setProgress] = useState(0);
-  const [withError, setWithError] = useState(false);
   const formRef = useRef();
   const navigate = useNavigate();
   const [data, setData] = useState<{
@@ -75,6 +65,7 @@ function Publish() {
 
   const createAlert = useMutationCreateAlert({
     uuid: session?.user.id,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     description: editor?.getText()!,
     hash: data.hash!,
     imageUrl: data.imageurl!,

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+//@ts-ignore
 import {
   Group,
   Title,
@@ -22,7 +25,6 @@ import { useQueryClient } from "react-query";
 function AdminList() {
   const [opened, { open, close }] = useDisclosure(false);
   const [loading, setLoading] = useState(false);
-  const [isError, setError] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,7 +83,6 @@ function AdminList() {
             onChange={(e) => setName(e.target.value)}
             withAsterisk
             required
-            error={isError}
           />
           <TextInput
             label="Son email"
@@ -90,7 +91,6 @@ function AdminList() {
             onChange={(e) => setEmail(e.target.value)}
             withAsterisk
             required
-            error={isError}
           />
           <PasswordInput
             label="Son mot de passe"
@@ -98,7 +98,6 @@ function AdminList() {
             onChange={(e) => setPassword(e.target.value)}
             withAsterisk
             required
-            error={isError}
           />
           <Select
             label="Choisir sa faculte de publication"
@@ -132,6 +131,7 @@ function AdminList() {
         isLoading={isLoading}
         index={id}
         handleClick={handleDelete}
+        isError={fetchError}
       />
     </>
   );

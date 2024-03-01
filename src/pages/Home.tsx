@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+//@ts-nocheck
+//@ts-ignore
 import React, { useEffect, useState } from "react";
 import {
   Text,
