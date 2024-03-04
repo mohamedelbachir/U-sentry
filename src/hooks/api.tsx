@@ -135,7 +135,8 @@ export const useAlertList = (id: string) => {
       const { data, error } = await supabase
         .from("alertes")
         .select("*")
-        .eq("uuid", id);
+        .eq("uuid", id)
+        .order("create_at", { ascending: false });
       if (error) {
         //console.log(error);
         throw new Error(error.message);

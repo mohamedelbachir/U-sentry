@@ -13,6 +13,7 @@
     "@mantine/core": "^7.3.2",
     "@mantine/form": "^7.5.2",
     "@mantine/hooks": "^7.3.2",
+    "@mantine/notifications": "^7.6.1",
     "@mantine/tiptap": "^7.5.3",
     "@supabase/supabase-js": "^2.39.7",
     "@tabler/icons-react": "^2.47.0",

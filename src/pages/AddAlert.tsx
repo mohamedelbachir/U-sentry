@@ -2,6 +2,7 @@
 //@ts-nocheck
 //@ts-ignore
 import React, { useEffect, useRef, useState } from "react";
+import { IconCheck } from "@tabler/icons-react";
 import {
   ref,
   uploadBytesResumable,
@@ -19,6 +20,7 @@ import {
   Group,
   Title,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 
 import { IconSend } from "@tabler/icons-react";
 import Compressor from "compressorjs";
@@ -58,6 +60,8 @@ function AddAlert() {
   });
   const navigate = useNavigate();
   const [file, setFile] = useState<string | null>(null);
+  const [key, setKey] = useState<number>(0);
+  const [id, setId] = useState<string>("");
   const [compressedFile, setCompressedFile] = useState<File | Blob>();
   const storage = getStorage(app);
   const { session } = useAuth();
@@ -203,6 +207,34 @@ function AddAlert() {
     if (!compressedFile) {
       return;
     }
+    if (data.target == null) {
+      notifications.show({
+        message:
+          "Veuillez SVP renseigner la cible de votre alerte (faculte ou niveau ou departement ou filiere) !!!",
+        autoClose: false,
+        withBorder: true,
+      });
+      return;
+    }
+    if (editor?.getText() === "") {
+      notifications.show({
+        title: "Information !!",
+        message:
+          "Veuillez renseigner une description pour capter l'attention a votre cible",
+        autoClose: false,
+        withBorder: true,
+      });
+      return;
+    }
+    const id = notifications.show({
+      loading: true,
+      title: "Publication de l'alerte",
+      message: "Votre alerte est en cours de publication ...",
+      autoClose: false,
+      withCloseButton: false,
+      withBorder: true,
+    });
+    setId(id);
     console.log(data);
 
     setLoading(true);
@@ -263,14 +295,50 @@ function AddAlert() {
   useEffect(() => {
     if (createAlert.isSuccess) {
       setFile(null);
+      notifications.update({
+        id,
+        color: "teal",
+        title: "Alerte publier",
+        message: "Votre alerte a ete publier avec succes !!",
+        icon: <IconCheck style={{ width: 18, height: 18 }} />,
+        loading: false,
+        autoClose: 2000,
+      });
+      editor?.setOptions({
+        content: "",
+      });
       setLoading(false);
-      setTimeout(() => {
-        navigate("/admin");
-      }, 1000);
+      setKey((c) => c + 1);
     }
   }, [createAlert.isSuccess]);
+  useEffect(() => {
+    if (createAlert.isError) {
+      notifications.hide(id);
+      notifications.show({
+        title: "Erreur !!",
+        message: "Une erreur s'est produite lors de la publication d'alerte",
+        autoClose: 2000,
+        withBorder: true,
+        color: "white",
+        styles: {
+          icon: {
+            accentColor: "white",
+          },
+          title: {
+            color: "white",
+          },
+          description: {
+            color: "white",
+          },
+          root: {
+            backgroundColor: "red",
+          },
+        },
+      });
+    }
+  }, [createAlert.isError]);
   return (
-    <form id="formElement" onSubmit={handleSubmit} ref={formRef}>
+    <form id="formElement" onSubmit={handleSubmit} ref={formRef} key={key}>
       <Box pos={"sticky"} top={0} py={"md"} w={"100%"} className={classes.top}>
         <Group justify="space-between">
           <Title order={3}>Creer une alerte</Title>

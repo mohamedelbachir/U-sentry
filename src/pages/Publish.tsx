@@ -10,8 +10,10 @@ import {
 } from "firebase/storage";
 import classes from "./../styles/alert.module.css";
 import { IconImageInPicture } from "@tabler/icons-react";
-import { TextInput, Button, Text, Box, Group, Title } from "@mantine/core";
+import { IconCheck } from "@tabler/icons-react";
 
+import { TextInput, Button, Text, Box, Group, Title } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { IconSend } from "@tabler/icons-react";
 import Compressor from "compressorjs";
 import { encode } from "blurhash";
@@ -42,6 +44,8 @@ function Publish() {
     ],
   });
   const [file, setFile] = useState<string | null>(null);
+  const [key, setKey] = useState<number>(0);
+  const [id, setId] = useState<string>("");
   const [compressedFile, setCompressedFile] = useState<File | Blob>();
   const storage = getStorage(app);
   const { session } = useAuth();
@@ -139,6 +143,25 @@ function Publish() {
     if (!compressedFile) {
       return;
     }
+    if (editor?.getText() === "") {
+      notifications.show({
+        title: "Information !!",
+        message:
+          "Veuillez renseigner une description pour capter l'attention a votre cible",
+        autoClose: false,
+        withBorder: true,
+      });
+      return;
+    }
+    const id = notifications.show({
+      loading: true,
+      title: "Votre diffusion en cours de publication",
+      message: "Votre diffision est cours de publication ...",
+      autoClose: false,
+      withCloseButton: false,
+      withBorder: true,
+    });
+    setId(id);
     console.log(data);
 
     setLoading(true);
@@ -198,14 +221,51 @@ function Publish() {
   }
   useEffect(() => {
     if (createAlert.isSuccess) {
-      setTimeout(() => {
-        navigate("/admin");
-      }, 1000);
+      setFile(null);
+      notifications.update({
+        id,
+        color: "teal",
+        title: "Votre diffusion est envoye",
+        message: "Votre diffusion a ete publier avec succes !!",
+        icon: <IconCheck style={{ width: 18, height: 18 }} />,
+        loading: false,
+        autoClose: 2000,
+      });
+      editor?.setOptions({
+        content: "",
+      });
       setLoading(false);
+      setKey((c) => c + 1);
     }
   }, [createAlert.isSuccess]);
+  useEffect(() => {
+    if (createAlert.isError) {
+      notifications.hide(id);
+      notifications.show({
+        title: "Erreur !!",
+        message: "Une erreur s'est produite lors de la publication d'alerte",
+        autoClose: 2000,
+        withBorder: true,
+        color: "white",
+        styles: {
+          icon: {
+            accentColor: "white",
+          },
+          title: {
+            color: "white",
+          },
+          description: {
+            color: "white",
+          },
+          root: {
+            backgroundColor: "red",
+          },
+        },
+      });
+    }
+  }, [createAlert.isError]);
   return (
-    <form id="formElement" onSubmit={handleSubmit} ref={formRef}>
+    <form id="formElement" onSubmit={handleSubmit} ref={formRef} key={key}>
       <Box pos={"sticky"} top={0} py={"md"} w={"100%"} className={classes.top}>
         <Group justify="space-between">
           <Title order={3}>Faire une publication</Title>
