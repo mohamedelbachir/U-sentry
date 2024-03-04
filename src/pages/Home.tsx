@@ -80,9 +80,9 @@ function Home() {
                 <Card.Section withBorder>
                   <Image src={data.imageURL} w={200} h={150} fit="cover" />
                 </Card.Section>
-                <Group justify="space-between" wrap="nowrap" mt={"xs"}>
+                <Group justify="space-between" mt={"xs"}>
                   <Box>
-                    <Text fw={"bold"} lineClamp={2}>
+                    <Text fw={"bold"} lineClamp={1}>
                       {data.title}
                     </Text>
                     <Text lineClamp={1} size="sm">
